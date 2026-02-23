@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Extractor</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="32" height="32" rx="6" fill="#2563eb"/>
+                    <path d="M8 10h16M8 16h12M8 22h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <h1>Resume Extractor</h1>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Navigation</h3>
+                <ul>
+                    <li><a href="#" class="active" data-section="upload">Upload Resume</a></li>
+                    <li><a href="#" data-section="results">Results</a></li>
+                    <li><a href="#" data-section="history">History</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Settings</h3>
+                <ul>
+                    <li>
+                        <label class="toggle-label">
+                            <span>Auto-extract</span>
+                            <input type="checkbox" id="autoExtract" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="toggle-label">
+                            <span>Show confidence</span>
+                            <input type="checkbox" id="showConfidence" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Statistics</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="skillsCount">-</span>
+                        <span class="stat-label">Skills in DB</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="processedCount">0</span>
+                        <span class="stat-label">Processed</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Upload Section -->
+        <section class="section active" id="uploadSection">
+            <div class="container">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M32 16v32M16 32l16-16 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="8" y="48" width="48" height="8" rx="2" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h2>Upload Your Resume</h2>
+                    <p>Drag and drop your resume file here, or click to browse</p>
+                    <p class="file-types">Supported formats: PDF, TXT, DOC, DOCX</p>
+                    <input type="file" id="fileInput" accept=".pdf,.txt,.doc,.docx" hidden>
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
+                </div>
+
+                <!-- Progress Indicator -->
+                <div class="progress-container" id="progressContainer" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p class="progress-text" id="progressText">Uploading...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="section" id="resultsSection">
+            <div class="container">
+                <div class="results-header">
+                    <h2>Extraction Results</h2>
+                    <div class="confidence-badge" id="confidenceBadge">
+                        Confidence: <span id="confidenceValue">0%</span>
+                    </div>
+                </div>
+
+                <!-- Skills Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2l2.5 5.5L18 8.5l-4 4 1 5.5-5.5-3-5.5 3 1-5.5-4-4 5.5-1L10 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            </svg>
+                            Skills
+                        </h3>
+                        <span class="badge" id="skillsBadge">0 found</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="skills-container" id="skillsContainer">
+                            <p class="empty-state">No skills extracted yet. Upload a resume to get started.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Education Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2L2 7l8 5 8-5-8-5zM2 17l8 5 8-5M2 12l8 5 8-5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            </svg>
+                            Education
+                        </h3>
+                        <span class="badge" id="educationBadge">0 found</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="education-container" id="educationContainer">
+                            <p class="empty-state">No education information extracted yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Experience Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                                <path d="M6 9h8M6 13h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            Experience
+                        </h3>
+                        <span class="badge" id="experienceBadge">0 found</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="experience-container" id="experienceContainer">
+                            <p class="empty-state">No experience information extracted yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Info Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M4 4h12v12H4z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                                <path d="M4 8l6 4 6-4" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            Contact Information
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="contact-container" id="contactContainer">
+                            <div class="contact-item">
+                                <span class="contact-label">Email:</span>
+                                <span class="contact-value" id="emailValue">-</span>
+                            </div>
+                            <div class="contact-item">
+                                <span class="contact-label">Phone:</span>
+                                <span class="contact-value" id="phoneValue">-</span>
+                            </div>
+                            <div class="contact-item">
+                                <span class="contact-label">LinkedIn:</span>
+                                <span class="contact-value" id="linkedinValue">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Raw Text Preview -->
+                <div class="card">
+                    <div class="card-header collapsible" id="rawTextHeader">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M4 6h12M4 10h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            Raw Text Preview
+                        </h3>
+                        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="card-body collapsible-content" id="rawTextContent" style="display: none;">
+                        <pre class="raw-text" id="rawText">No content available</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- History Section -->
+        <section class="section" id="historySection">
+            <div class="container">
+                <h2>Processing History</h2>
+                <div class="history-list" id="historyList">
+                    <p class="empty-state">No processing history available.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

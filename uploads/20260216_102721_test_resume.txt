@@ -1,0 +1,29 @@
+JOHN DOE
+Software Engineer
+
+Email: john.doe@email.com
+Phone: (555) 123-4567
+LinkedIn: linkedin.com/in/johndoe
+
+SKILLS
+Python, JavaScript, React, Node.js, SQL, MongoDB, AWS, Docker, Kubernetes, Git, Agile, Project Management, Data Analysis, Machine Learning, TensorFlow, PyTorch, HTML, CSS, REST APIs, GraphQL, PostgreSQL, Redis, Jenkins, CI/CD, Linux, Bash scripting
+
+EDUCATION
+Bachelor of Science in Computer Science
+University of Technology, 2015-2019
+
+Master of Science in Data Science
+Tech University, 2020-2022
+
+EXPERIENCE
+Senior Software Engineer
+Tech Solutions Inc., 2022-Present
+- Developed scalable web applications using Python and React
+- Implemented machine learning models for data analysis
+- Managed cloud infrastructure on AWS
+
+Software Developer
+StartUp Company, 2019-2022
+- Built REST APIs using Node.js and Express
+- Worked with MongoDB and PostgreSQL databases
+- Practiced Agile methodologies and Scrum
