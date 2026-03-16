@@ -5,6 +5,9 @@ instance/*
 .webassets-cache
 .env
 
+# Project Specifics
+uploads/*
+
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
