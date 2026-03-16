@@ -2,10 +2,11 @@
  * @file app.js
  * @brief Resume Extractor Application JavaScript
  * @details Handles all client-side functionality including file uploads,
- *          sidebar toggling, API communication, and UI updates.
+ *          sidebar toggling, dark/light theme switching, API communication,
+ *          and UI updates.
  * @author Resume Extractor Team
  * @date 2024
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 /**
@@ -18,6 +19,7 @@ class ResumeExtractorApp {
         this.sidebarOpen = false;
         this.processingHistory = [];
         this.currentSection = 'upload';
+        this.darkMode = document.documentElement.getAttribute('data-theme') === 'dark';
         this.init();
     }
 
@@ -27,6 +29,7 @@ class ResumeExtractorApp {
      */
     init() {
         this.setupEventListeners();
+        this.initDarkMode();
         this.loadSkillsCount();
         this.updateStats();
     }
@@ -39,15 +42,15 @@ class ResumeExtractorApp {
         // Sidebar toggle
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebar = document.getElementById('sidebar');
-        
+
         sidebarToggle.addEventListener('click', () => {
             this.toggleSidebar();
         });
 
         // Close sidebar when clicking outside
         document.addEventListener('click', (e) => {
-            if (this.sidebarOpen && 
-                !sidebar.contains(e.target) && 
+            if (this.sidebarOpen &&
+                !sidebar.contains(e.target) &&
                 !sidebarToggle.contains(e.target)) {
                 this.closeSidebar();
             }
@@ -76,7 +79,7 @@ class ResumeExtractorApp {
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
-            
+
             if (e.dataTransfer.files.length > 0) {
                 const file = e.dataTransfer.files[0];
                 if (this.isValidFileType(file.name)) {
@@ -97,18 +100,40 @@ class ResumeExtractorApp {
             });
         });
 
-        // Collapsible cards
+        // Collapsible cards (click + keyboard Enter/Space for a11y)
         const rawTextHeader = document.getElementById('rawTextHeader');
         if (rawTextHeader) {
             rawTextHeader.addEventListener('click', () => {
                 this.toggleCollapsible(rawTextHeader, 'rawTextContent');
+            });
+            rawTextHeader.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.toggleCollapsible(rawTextHeader, 'rawTextContent');
+                }
+            });
+        }
+
+        // Dark mode toggle button
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', () => this.toggleDarkMode());
+        }
+
+        // Upload area keyboard accessibility (reuses uploadArea from above)
+        if (uploadArea) {
+            uploadArea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    document.getElementById('fileInput').click();
+                }
             });
         }
 
         // Settings toggles
         const autoExtract = document.getElementById('autoExtract');
         const showConfidence = document.getElementById('showConfidence');
-        
+
         if (autoExtract) {
             autoExtract.addEventListener('change', (e) => {
                 localStorage.setItem('autoExtract', e.target.checked);
@@ -132,7 +157,7 @@ class ResumeExtractorApp {
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         this.sidebarOpen = !this.sidebarOpen;
-        
+
         if (this.sidebarOpen) {
             sidebar.classList.add('open');
         } else {
@@ -147,6 +172,43 @@ class ResumeExtractorApp {
         const sidebar = document.getElementById('sidebar');
         this.sidebarOpen = false;
         sidebar.classList.remove('open');
+    }
+
+    /* -----------------------------------------------------------------
+     * Dark Mode
+     * ----------------------------------------------------------------- */
+
+    /**
+     * @brief Initialise dark-mode state on load
+     * @details Reads data-theme (set by inline <script> in HTML head)
+     *          and syncs the icon visibility.
+     */
+    initDarkMode() {
+        this.updateDarkModeIcons();
+    }
+
+    /**
+     * @brief Toggle between light and dark themes
+     * @details Persists the choice to localStorage so it survives reloads.
+     */
+    toggleDarkMode() {
+        this.darkMode = !this.darkMode;
+        const theme = this.darkMode ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        this.updateDarkModeIcons();
+    }
+
+    /**
+     * @brief Show / hide the sun & moon SVG icons
+     */
+    updateDarkModeIcons() {
+        const sun = document.querySelector('.icon-sun');
+        const moon = document.querySelector('.icon-moon');
+        if (sun && moon) {
+            sun.style.display = this.darkMode ? 'block' : 'none';
+            moon.style.display = this.darkMode ? 'none' : 'block';
+        }
     }
 
     /**
@@ -183,13 +245,15 @@ class ResumeExtractorApp {
     toggleCollapsible(header, contentId) {
         const content = document.getElementById(contentId);
         const isOpen = header.classList.contains('open');
-        
+
         if (isOpen) {
             header.classList.remove('open');
             content.style.display = 'none';
+            header.setAttribute('aria-expanded', 'false');
         } else {
             header.classList.add('open');
             content.style.display = 'block';
+            header.setAttribute('aria-expanded', 'true');
         }
     }
 
@@ -213,7 +277,7 @@ class ResumeExtractorApp {
         const progressContainer = document.getElementById('progressContainer');
         const progressFill = document.getElementById('progressFill');
         const progressText = document.getElementById('progressText');
-        
+
         progressContainer.style.display = 'block';
         progressFill.style.width = '0%';
         progressText.textContent = 'Uploading...';
@@ -246,7 +310,7 @@ class ResumeExtractorApp {
                 this.displayResults(result);
                 this.addToHistory(file.name, true);
                 this.showToast('Success', 'Resume processed successfully!', 'success');
-                
+
                 // Switch to results section
                 setTimeout(() => {
                     this.switchSection('results');
@@ -275,7 +339,7 @@ class ResumeExtractorApp {
         const confidenceBadge = document.getElementById('confidenceBadge');
         const confidence = Math.round((data.confidence_score || 0) * 100);
         confidenceValue.textContent = confidence + '%';
-        
+
         // Color code confidence
         confidenceBadge.className = 'confidence-badge';
         if (confidence >= 80) {
@@ -312,16 +376,16 @@ class ResumeExtractorApp {
     displaySkills(skills) {
         const container = document.getElementById('skillsContainer');
         const badge = document.getElementById('skillsBadge');
-        
+
         badge.textContent = skills.length + ' found';
-        
+
         if (skills.length === 0) {
             container.innerHTML = '<p class="empty-state">No skills detected in this resume.</p>';
             return;
         }
 
         const showConfidence = localStorage.getItem('showConfidence') !== 'false';
-        
+
         container.innerHTML = skills.map(skill => {
             let confidenceHtml = '';
             if (showConfidence && typeof skill === 'object' && skill.confidence) {
@@ -359,9 +423,9 @@ class ResumeExtractorApp {
     displayEducation(education) {
         const container = document.getElementById('educationContainer');
         const badge = document.getElementById('educationBadge');
-        
+
         badge.textContent = education.length + ' found';
-        
+
         if (education.length === 0) {
             container.innerHTML = '<p class="empty-state">No education information detected.</p>';
             return;
@@ -383,9 +447,9 @@ class ResumeExtractorApp {
     displayExperience(experience) {
         const container = document.getElementById('experienceContainer');
         const badge = document.getElementById('experienceBadge');
-        
+
         badge.textContent = experience.length + ' found';
-        
+
         if (experience.length === 0) {
             container.innerHTML = '<p class="empty-state">No experience information detected.</p>';
             return;
@@ -421,7 +485,7 @@ class ResumeExtractorApp {
             date: new Date().toLocaleString(),
             success: success
         };
-        
+
         this.processingHistory.unshift(entry);
         this.updateHistoryDisplay();
         this.updateStats();
@@ -432,7 +496,7 @@ class ResumeExtractorApp {
      */
     updateHistoryDisplay() {
         const container = document.getElementById('historyList');
-        
+
         if (this.processingHistory.length === 0) {
             container.innerHTML = '<p class="empty-state">No processing history available.</p>';
             return;
@@ -468,7 +532,7 @@ class ResumeExtractorApp {
         try {
             const response = await fetch('/api/skills');
             const data = await response.json();
-            
+
             const skillsCount = document.getElementById('skillsCount');
             if (skillsCount && data.count) {
                 skillsCount.textContent = data.count.toLocaleString();
@@ -486,16 +550,16 @@ class ResumeExtractorApp {
      */
     showToast(title, message, type = 'info') {
         const container = document.getElementById('toastContainer');
-        
+
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `
             <div class="toast-title">${this.escapeHtml(title)}</div>
             <div class="toast-message">${this.escapeHtml(message)}</div>
         `;
-        
+
         container.appendChild(toast);
-        
+
         // Remove after 5 seconds
         setTimeout(() => {
             toast.style.animation = 'slideIn 0.3s ease reverse';
@@ -526,11 +590,11 @@ window.addEventListener('load', async () => {
     try {
         const response = await fetch('/api/health');
         const data = await response.json();
-        
+
         if (!data.initialized) {
             console.warn('Application not fully initialized');
         }
-        
+
         console.log('App health:', data);
     } catch (error) {
         console.error('Health check failed:', error);
